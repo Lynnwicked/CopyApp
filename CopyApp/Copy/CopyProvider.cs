@@ -12,19 +12,30 @@ namespace CopyApp.Copy {
     }
 
     public void Copy() {
-      ProcessFolder(_args.Source);
+      ProcessDirectory(_args.Source);
     }
 
-    private void ProcessFolder(string folder) {
-      var folders = Directory.GetDirectories(folder);
+    private void ProcessDirectory(string directory) {
+      ProcessFiles(directory);
 
-      foreach (var f in folders) {
-        ProcessFolder(f);
-      }
+      var folders = Directory.GetDirectories(directory);
       
-      var groups = 
+      foreach (var f in folders) {
+        ProcessDirectory(f);
+      }
+
+      using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
+        if (_args.Delete && directory != _args.Source && !Directory.EnumerateFileSystemEntries(directory).Any()) {
+          Directory.Delete(directory);
+          sw.WriteLine($"DELETE: Empty folder {directory} successfully deleted");
+        }
+      }
+    }
+
+    private void ProcessFiles(string directory) {
+      var groups =
         Directory
-          .GetFiles(folder)
+          .GetFiles(directory)
           .GroupBy(Path.GetFileNameWithoutExtension)
           .Select(x => new {Name = x.Key, Files = x});
 
@@ -41,76 +52,43 @@ namespace CopyApp.Copy {
           }
           else if (Constants.FileExtensions.VideoExtensions.Contains(extension)) {
             isFileValid = true;
-            targetDirectory =  $@"{_args.Target}\Movies";
+            targetDirectory = $@"{_args.Target}\Movies";
           }
         }
 
         if (!isFileValid) {
           continue;
         }
-        
-        var files = Directory.EnumerateFiles(folder, $"{group.Name}.*");
-        var newFolders = folder.Replace(_args.Source, string.Empty);
-        targetDirectory = Path.Combine(targetDirectory, newFolders);
 
-        ProcessFiles(targetDirectory, files);
+        var files = Directory.EnumerateFiles(directory, $"{group.Name}.*");
+        var newFolders = directory.Replace(_args.Source, string.Empty);
+        targetDirectory = $"{targetDirectory}{newFolders}";
+
+        ProcessValidFiles(targetDirectory, files);
       }
     }
 
-    private void ProcessFiles(string newDirectory, IEnumerable<string> files) {
-      if (!Directory.Exists(newDirectory)) {
-        Directory.CreateDirectory(newDirectory);
-      }
+    private void ProcessValidFiles(string newDirectory, IEnumerable<string> files) {
+      using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
+        if (!Directory.Exists(newDirectory)) {
+          Directory.CreateDirectory(newDirectory);
+        }
 
-      foreach (var file in files) {
-        using (var sw = new StreamWriter($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
+        foreach (var file in files) {
           var fileName = Path.GetFileName(file);
           var targetFile = Path.Combine(newDirectory, fileName);
 
-          if (!_args.Delete && File.Exists(targetFile)) {
-            continue;
+          if (!File.Exists(targetFile)) {
+            File.Copy(file, targetFile);
+            sw.WriteLine($"COPY: {file} successfully copied to {targetFile}");
           }
 
-          File.Copy(file, targetFile);
-
-          sw.WriteLine($"SUCCESS: {file} successfully copied to {targetFile}");
+          if (_args.Delete) {
+            File.Delete(file);
+            sw.WriteLine($"DELETE: {file} successfully deleted");
+          }
         }
       }
-    }
-
-    private void ProcessFiles(IEnumerable<string> files) {
-      //using (var sw = new StreamWriter($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
-      //  foreach (var file in files) {
-      //    var fileName = Path.GetFileName(file);
-      //    var extension = Path.GetExtension(file).ToLower();
-      //    string targetDirectory;
-
-      //    if (_audioExtensions.Contains(extension)) {
-      //      targetDirectory = $@"{_args.Target}\Music";
-      //    }
-      //    else if (_videoExtensions.Contains(extension)) {
-      //      targetDirectory =  $@"{_args.Target}\Movies";
-      //    }
-      //    else {
-      //      var f = Path.GetFileNameWithoutExtension(file);
-      //      continue;
-      //    }
-
-      //    var targetFile = $@"{targetDirectory}\{fileName}";
-
-      //    if (!Directory.Exists(targetDirectory)) {
-      //      Directory.CreateDirectory(targetDirectory);
-      //    }
-          
-      //    if (File.Exists(targetFile)) {
-      //      continue;
-      //    }
-
-      //    File.Copy(file, targetFile);
-          
-      //    sw.WriteLine($"SUCCESS: {file} successfully copied to {targetFile}");
-      //  }
-      //}
     }
   }
 }
