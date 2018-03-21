@@ -1,0 +1,11 @@
+E:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\CopyApp.deps.json
+E:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\CopyApp.runtimeconfig.json
+E:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\CopyApp.runtimeconfig.dev.json
+E:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\CopyApp.dll
+E:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\CopyApp.pdb
+E:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\CopyApp.csprojResolveAssemblyReference.cache
+E:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\CopyApp.csproj.CoreCompileInputs.cache
+E:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\CopyApp.AssemblyInfoInputs.cache
+E:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\CopyApp.AssemblyInfo.cs
+E:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\CopyApp.dll
+E:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\CopyApp.pdb
