@@ -12,18 +12,7 @@ namespace CopyApp.Copy {
     }
 
     public void Copy() {
-      using (var sw = new StreamWriter($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
-
-      }
-
-//      var sourceFiles = Directory.GetFiles(_args.Source);
-//
-//      ProcessFiles(sourceFiles);
-
-//      var sourceFolders = Directory.GetDirectories(_args.Source);
-//      var targetFolders = Directory.GetDirectories(_args.Target);
-
-//      ProcessFolders(sourceFolders, targetFolders);
+      ProcessFolder(_args.Source);
     }
 
     private void ProcessFolder(string folder) {
@@ -69,7 +58,24 @@ namespace CopyApp.Copy {
     }
 
     private void ProcessFiles(string newDirectory, IEnumerable<string> files) {
-      
+      if (!Directory.Exists(newDirectory)) {
+        Directory.CreateDirectory(newDirectory);
+      }
+
+      foreach (var file in files) {
+        using (var sw = new StreamWriter($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
+          var fileName = Path.GetFileName(file);
+          var targetFile = Path.Combine(newDirectory, fileName);
+
+          if (!_args.Delete && File.Exists(targetFile)) {
+            continue;
+          }
+
+          File.Copy(file, targetFile);
+
+          sw.WriteLine($"SUCCESS: {file} successfully copied to {targetFile}");
+        }
+      }
     }
 
     private void ProcessFiles(IEnumerable<string> files) {
