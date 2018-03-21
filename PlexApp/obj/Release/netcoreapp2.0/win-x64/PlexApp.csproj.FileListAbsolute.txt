@@ -1,0 +1,13 @@
+D:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\win-x64\hostpolicy.dll
+D:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\win-x64\hostfxr.dll
+D:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\win-x64\PlexApp.exe
+D:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\win-x64\PlexApp.deps.json
+D:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\win-x64\PlexApp.runtimeconfig.json
+D:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\win-x64\PlexApp.runtimeconfig.dev.json
+D:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\win-x64\PlexApp.dll
+D:\Dev\PlexApp\PlexApp\bin\Release\netcoreapp2.0\win-x64\PlexApp.pdb
+D:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\win-x64\PlexApp.csproj.CoreCompileInputs.cache
+D:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\win-x64\PlexApp.AssemblyInfoInputs.cache
+D:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\win-x64\PlexApp.AssemblyInfo.cs
+D:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\win-x64\PlexApp.dll
+D:\Dev\PlexApp\PlexApp\obj\Release\netcoreapp2.0\win-x64\PlexApp.pdb
