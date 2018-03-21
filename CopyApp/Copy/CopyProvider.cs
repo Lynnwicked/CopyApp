@@ -12,17 +12,38 @@ namespace CopyApp.Copy {
     }
 
     public void Copy() {
-      if (!Directory.Exists(_args.Source)) {
-        using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
-          var message = $"ERROR: Source directory doesn't exist {_args.Source}";
+      CheckForErrors();
 
-          sw.WriteLine(message);
-
-          throw new Exception(message);
-        }
-      }
-      
       ProcessDirectory(_args.Source);
+    }
+
+    private void CheckForErrors() {
+      var error = false;
+      var message = string.Empty;
+
+      if (_args.Log.Contains(_args.Source)) {
+        throw new Exception($"ERROR: Cannot create log the source folder{Environment.NewLine}  Source: {_args.Source}{Environment.NewLine}  Log: {_args.Log}");
+      }
+
+      if (!Directory.Exists(_args.Source)) {
+        error = true;
+        message = $"ERROR: Source directory doesn't exist{Environment.NewLine}  Source: {_args.Source}";
+      }
+
+      if (_args.Target.Contains(_args.Source)) {
+        error = true;
+        message = $"ERROR: Cannot copy into the source folder{Environment.NewLine}  Source: {_args.Source}{Environment.NewLine}  Target: {_args.Target}";
+      }
+
+      if (!error) {
+        return;
+      }
+
+      using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
+        sw.WriteLine(message);
+      }
+
+      throw new Exception(message);
     }
 
     private void ProcessDirectory(string directory) {
@@ -34,16 +55,19 @@ namespace CopyApp.Copy {
       }
 
       var folders = Directory.GetDirectories(directory);
-      
+
       foreach (var f in folders) {
         ProcessDirectory(f);
       }
 
+      if (!_args.Delete || directory == _args.Source || Directory.EnumerateFileSystemEntries(directory).Any()) {
+        return;
+      }
+
       using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
-        if (_args.Delete && directory != _args.Source && !Directory.EnumerateFileSystemEntries(directory).Any()) {
-          Directory.Delete(directory);
-          sw.WriteLine($"DELETE: Empty folder {directory} successfully deleted");
-        }
+        Directory.Delete(directory);
+        sw.WriteLine($"DELETE: Empty folder deleted successfully");
+        sw.WriteLine($"  Folder: {directory}");
       }
     }
 
@@ -103,13 +127,18 @@ namespace CopyApp.Copy {
 
           if (!File.Exists(targetFile)) {
             File.Copy(file, targetFile);
-            sw.WriteLine($"COPY: {file} successfully copied to {targetFile}");
+            sw.WriteLine($"COPY: File copied successfully");
+            sw.WriteLine($"  From: {file}");
+            sw.WriteLine($"  To: {targetFile}");
           }
 
-          if (_args.Delete) {
-            File.Delete(file);
-            sw.WriteLine($"DELETE: {file} successfully deleted");
+          if (!_args.Delete) {
+            continue;
           }
+
+          File.Delete(file);
+          sw.WriteLine($"DELETE: File deleted successfully");
+          sw.WriteLine($"  File: {file}");
         }
       }
     }
