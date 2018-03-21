@@ -1,2 +1,4 @@
 /CopyApp/publish
 /.vs
+/CopyApp/obj
+/CopyApp/bin
