@@ -2,79 +2,106 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace CopyApp.Copy {
   public class CopyProvider {
     private readonly CopyArgs _args;
+    private bool _error;
 
     public CopyProvider(CopyArgs args) {
       _args = args;
     }
 
     public void Copy() {
-      CheckForErrors();
+      Prep();
 
       ProcessDirectory(_args.Source);
     }
 
-    private void CheckForErrors() {
-      var error = false;
-      var message = string.Empty;
+    private void Prep() {
+      var sb = new StringBuilder();
 
+      PrepLogDirectory();
+      ValidateLog(sb);
+      ValidateSource(sb);
+      ValidateTarget(sb);
+
+      if (_error) {
+        using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MMddyyyy}.log")) {
+          sw.WriteLine(sb.ToString());
+        }
+
+        throw new Exception(sb.ToString());
+      }
+    }
+
+    private void ValidateLog(StringBuilder sb) {
       if (_args.Log.Contains(_args.Source)) {
-        throw new Exception($"ERROR: Cannot create log the source folder{Environment.NewLine}  Source: {_args.Source}{Environment.NewLine}  Log: {_args.Log}");
+        _error = true;
+
+        sb.AppendLine($"ERROR: Log file cannot be in source folder")
+          .AppendLine($"  Source: {_args.Source}")
+          .AppendLine($"  Log: {_args.Log}");
+      }
+    }
+
+    private void ValidateSource(StringBuilder sb) {
+      if (string.IsNullOrWhiteSpace(_args.Source)) {
+        _error = true;
+
+        sb.AppendLine($"ERROR: Source path cannot be empty");
       }
 
       if (!Directory.Exists(_args.Source)) {
-        error = true;
-        message = $"ERROR: Source directory doesn't exist{Environment.NewLine}  Source: {_args.Source}";
+        _error = true;
+
+        sb.AppendLine($"ERROR: Source directory doesn't exist")
+          .AppendLine($"  Source: {_args.Source}");
+      }
+    }
+
+    private void ValidateTarget(StringBuilder sb) {
+      if (string.IsNullOrWhiteSpace(_args.Target)) {
+        _error = true;
+
+        sb.AppendLine($"ERROR: Target path cannot be empty");
       }
 
       if (_args.Target.Contains(_args.Source)) {
-        error = true;
-        message = $"ERROR: Cannot copy into the source folder{Environment.NewLine}  Source: {_args.Source}{Environment.NewLine}  Target: {_args.Target}";
+        _error = true;
+
+        sb.AppendLine($"ERROR: Cannot copy into the source folder")
+          .AppendLine($"  Source: {_args.Source}")
+          .AppendLine($"  Target: {_args.Target}");
+      }
+    }
+
+    private void PrepLogDirectory() {
+      if (string.IsNullOrWhiteSpace(_args.Log)) {
+        throw new Exception($"ERROR: Log path cannot be empty");
       }
 
-      if (!error) {
-        return;
+      if (!Directory.Exists(_args.Log)) {
+        Directory.CreateDirectory(_args.Log);
       }
-
-      using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
-        sw.WriteLine(message);
-      }
-
-      throw new Exception(message);
     }
 
     private void ProcessDirectory(string directory) {
-      if (_args.OnlyMedia) {
+      if (_args.Media) {
         ProcessMediaFiles(directory);
       }
       else {
         ProcessAllFiles(directory);
       }
 
-      var folders = Directory.GetDirectories(directory);
-
-      foreach (var f in folders) {
-        ProcessDirectory(f);
-      }
-
-      if (!_args.Delete || directory == _args.Source || Directory.EnumerateFileSystemEntries(directory).Any()) {
-        return;
-      }
-
-      using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
-        Directory.Delete(directory);
-        sw.WriteLine($"DELETE: Empty folder deleted successfully");
-        sw.WriteLine($"  Folder: {directory}");
-      }
+      ProcessDirectories(directory);
     }
 
     private void ProcessAllFiles(string directory) {
       var files = Directory.EnumerateFiles(directory);
-      var newFolders = directory.Replace(_args.Source, string.Empty);
-      var targetDirectory = $"{_args.Target}{newFolders}";
+      var newDirectory = directory.Replace(_args.Source, string.Empty);
+      var targetDirectory = $"{_args.Target}{newDirectory}";
 
       CopyFiles(targetDirectory, files);
     }
@@ -115,8 +142,26 @@ namespace CopyApp.Copy {
       }
     }
 
+    private void ProcessDirectories(string directory) {
+      var directories = Directory.GetDirectories(directory);
+
+      foreach (var d in directories) {
+        ProcessDirectory(d);
+      }
+
+      if (!_args.Delete || directory == _args.Source || Directory.EnumerateFileSystemEntries(directory).Any()) {
+        return;
+      }
+
+      using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MMddyyyy}.log")) {
+        Directory.Delete(directory);
+        sw.WriteLine($"DELETE: Empty folder deleted successfully");
+        sw.WriteLine($"  Folder: {directory}");
+      }
+    }
+
     private void CopyFiles(string newDirectory, IEnumerable<string> files) {
-      using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
+      using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MMddyyyy}.log")) {
         if (!Directory.Exists(newDirectory)) {
           Directory.CreateDirectory(newDirectory);
         }
