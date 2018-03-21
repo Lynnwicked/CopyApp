@@ -11,7 +11,10 @@ namespace CopyApp.Copy {
     [ArgShortcut("log"), ArgShortcut(ArgShortcutPolicy.ShortcutsOnly), ArgRequired, ArgDescription("Path of log file"), ArgPosition(3)]
     public string Log { get; set; }
 
-    [ArgShortcut("d"), ArgShortcut(ArgShortcutPolicy.ShortcutsOnly), ArgDescription("Delete source files after copy")]
+    [ArgShortcut("media"), ArgShortcut(ArgShortcutPolicy.ShortcutsOnly), ArgDefaultValue(true), ArgDescription("Only target media files (e.g. video or audio files only)")]
+    public bool OnlyMedia { get; set; }
+
+    [ArgShortcut("delete"), ArgShortcut(ArgShortcutPolicy.ShortcutsOnly), ArgDefaultValue(false), ArgDescription("Delete copied source files and any empty folders found")]
     public bool Delete { get; set; }
   }
 }

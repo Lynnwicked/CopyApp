@@ -12,11 +12,26 @@ namespace CopyApp.Copy {
     }
 
     public void Copy() {
+      if (!Directory.Exists(_args.Source)) {
+        using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
+          var message = $"ERROR: Source directory doesn't exist {_args.Source}";
+
+          sw.WriteLine(message);
+
+          throw new Exception(message);
+        }
+      }
+      
       ProcessDirectory(_args.Source);
     }
 
     private void ProcessDirectory(string directory) {
-      ProcessFiles(directory);
+      if (_args.OnlyMedia) {
+        ProcessMediaFiles(directory);
+      }
+      else {
+        ProcessAllFiles(directory);
+      }
 
       var folders = Directory.GetDirectories(directory);
       
@@ -32,10 +47,18 @@ namespace CopyApp.Copy {
       }
     }
 
-    private void ProcessFiles(string directory) {
+    private void ProcessAllFiles(string directory) {
+      var files = Directory.EnumerateFiles(directory);
+      var newFolders = directory.Replace(_args.Source, string.Empty);
+      var targetDirectory = $"{_args.Target}{newFolders}";
+
+      CopyFiles(targetDirectory, files);
+    }
+
+    private void ProcessMediaFiles(string directory) {
       var groups =
         Directory
-          .GetFiles(directory)
+          .EnumerateFiles(directory)
           .GroupBy(Path.GetFileNameWithoutExtension)
           .Select(x => new {Name = x.Key, Files = x});
 
@@ -64,11 +87,11 @@ namespace CopyApp.Copy {
         var newFolders = directory.Replace(_args.Source, string.Empty);
         targetDirectory = $"{targetDirectory}{newFolders}";
 
-        ProcessValidFiles(targetDirectory, files);
+        CopyFiles(targetDirectory, files);
       }
     }
 
-    private void ProcessValidFiles(string newDirectory, IEnumerable<string> files) {
+    private void CopyFiles(string newDirectory, IEnumerable<string> files) {
       using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MM-dd-yyyy}.log")) {
         if (!Directory.Exists(newDirectory)) {
           Directory.CreateDirectory(newDirectory);
