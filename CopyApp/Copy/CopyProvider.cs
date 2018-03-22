@@ -40,9 +40,9 @@ namespace CopyApp.Copy {
       if (_args.Log.Contains(_args.Source)) {
         _error = true;
 
-        sb.AppendLine($"ERROR: Log file cannot be in source folder")
-          .AppendLine($"  Source: {_args.Source}")
-          .AppendLine($"  Log: {_args.Log}");
+        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Log file cannot be in source folder")
+          .AppendLine($"  [Source]: {_args.Source}")
+          .AppendLine($"  [Log]: {_args.Log}");
       }
     }
 
@@ -50,14 +50,14 @@ namespace CopyApp.Copy {
       if (string.IsNullOrWhiteSpace(_args.Source)) {
         _error = true;
 
-        sb.AppendLine($"ERROR: Source path cannot be empty");
+        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Source path cannot be empty");
       }
 
       if (!Directory.Exists(_args.Source)) {
         _error = true;
 
-        sb.AppendLine($"ERROR: Source directory doesn't exist")
-          .AppendLine($"  Source: {_args.Source}");
+        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Source directory doesn't exist")
+          .AppendLine($"  [Source]: {_args.Source}");
       }
     }
 
@@ -65,21 +65,21 @@ namespace CopyApp.Copy {
       if (string.IsNullOrWhiteSpace(_args.Target)) {
         _error = true;
 
-        sb.AppendLine($"ERROR: Target path cannot be empty");
+        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Target path cannot be empty");
       }
 
       if (_args.Target.Contains(_args.Source)) {
         _error = true;
 
-        sb.AppendLine($"ERROR: Cannot copy into the source folder")
-          .AppendLine($"  Source: {_args.Source}")
-          .AppendLine($"  Target: {_args.Target}");
+        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Cannot copy into the source folder")
+          .AppendLine($"  [Source]: {_args.Source}")
+          .AppendLine($"  [Target]: {_args.Target}");
       }
     }
 
     private void PrepLogDirectory() {
       if (string.IsNullOrWhiteSpace(_args.Log)) {
-        throw new Exception($"ERROR: Log path cannot be empty");
+        throw new Exception($"{DateTime.Now:u} [ERROR]: Log path cannot be empty");
       }
 
       if (!Directory.Exists(_args.Log)) {
@@ -155,8 +155,8 @@ namespace CopyApp.Copy {
 
       using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MMddyyyy}.log")) {
         Directory.Delete(directory);
-        sw.WriteLine($"DELETE: Empty folder deleted successfully");
-        sw.WriteLine($"  Folder: {directory}");
+        sw.WriteLine($"{DateTime.Now:u} [DELETE]: Empty folder deleted successfully");
+        sw.WriteLine($"  [Folder]: {directory}");
       }
     }
 
@@ -172,9 +172,9 @@ namespace CopyApp.Copy {
 
           if (!File.Exists(targetFile)) {
             File.Copy(file, targetFile);
-            sw.WriteLine($"COPY: File copied successfully");
-            sw.WriteLine($"  From: {file}");
-            sw.WriteLine($"  To: {targetFile}");
+            sw.WriteLine($"{DateTime.Now:u} [COPY]: File copied successfully");
+            sw.WriteLine($"  [From]: {file}");
+            sw.WriteLine($"  [To]: {targetFile}");
           }
 
           if (!_args.Delete) {
@@ -182,8 +182,8 @@ namespace CopyApp.Copy {
           }
 
           File.Delete(file);
-          sw.WriteLine($"DELETE: File deleted successfully");
-          sw.WriteLine($"  File: {file}");
+          sw.WriteLine($"{DateTime.Now:u} [DELETE]: File deleted successfully");
+          sw.WriteLine($"  [File]: {file}");
         }
       }
     }
