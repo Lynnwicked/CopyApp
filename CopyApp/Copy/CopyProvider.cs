@@ -15,7 +15,6 @@ namespace CopyApp.Copy {
 
     public void Copy() {
       Prep();
-
       ProcessDirectory(_args.Source);
     }
 
@@ -40,7 +39,7 @@ namespace CopyApp.Copy {
       if (_args.Log.Contains(_args.Source)) {
         _error = true;
 
-        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Log file cannot be in source folder")
+        sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [ERROR]: Log file cannot be in source folder")
           .AppendLine($"  [Source]: {_args.Source}")
           .AppendLine($"  [Log]: {_args.Log}");
       }
@@ -50,13 +49,13 @@ namespace CopyApp.Copy {
       if (string.IsNullOrWhiteSpace(_args.Source)) {
         _error = true;
 
-        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Source path cannot be empty");
+        sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [ERROR]: Source path cannot be empty");
       }
 
       if (!Directory.Exists(_args.Source)) {
         _error = true;
 
-        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Source directory doesn't exist")
+        sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [ERROR]: Source directory doesn't exist")
           .AppendLine($"  [Source]: {_args.Source}");
       }
     }
@@ -65,13 +64,13 @@ namespace CopyApp.Copy {
       if (string.IsNullOrWhiteSpace(_args.Target)) {
         _error = true;
 
-        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Target path cannot be empty");
+        sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [ERROR]: Target path cannot be empty");
       }
 
       if (_args.Target.Contains(_args.Source)) {
         _error = true;
 
-        sb.AppendLine($"{DateTime.Now:u} [ERROR]: Cannot copy into the source folder")
+        sb.AppendLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [ERROR]: Cannot copy into the source folder")
           .AppendLine($"  [Source]: {_args.Source}")
           .AppendLine($"  [Target]: {_args.Target}");
       }
@@ -79,7 +78,7 @@ namespace CopyApp.Copy {
 
     private void PrepLogDirectory() {
       if (string.IsNullOrWhiteSpace(_args.Log)) {
-        throw new Exception($"{DateTime.Now:u} [ERROR]: Log path cannot be empty");
+        throw new Exception($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [ERROR]: Log path cannot be empty");
       }
 
       if (!Directory.Exists(_args.Log)) {
@@ -107,39 +106,42 @@ namespace CopyApp.Copy {
     }
 
     private void ProcessMediaFiles(string directory) {
-      var groups =
-        Directory
-          .EnumerateFiles(directory)
-          .GroupBy(Path.GetFileNameWithoutExtension)
-          .Select(x => new {Name = x.Key, Files = x});
+      var files = Directory.GetFiles(directory);
 
-      foreach (var group in groups) {
-        var isFileValid = false;
-        var targetDirectory = string.Empty;
+      var containsValidFile = false;
+      var targetDirectory = string.Empty;
 
-        foreach (var file in group.Files) {
-          var extension = Path.GetExtension(file);
+      foreach (var file in files) {
+        var extension = Path.GetExtension(file);
 
-          if (Constants.FileExtensions.AudioExtensions.Contains(extension)) {
-            isFileValid = true;
-            targetDirectory = $@"{_args.Target}\Music";
-          }
-          else if (Constants.FileExtensions.VideoExtensions.Contains(extension)) {
-            isFileValid = true;
-            targetDirectory = $@"{_args.Target}\Movies";
-          }
+        if (Constants.FileExtensions.VideoExtensions.Contains(extension)) {
+          containsValidFile = true;
+          targetDirectory = $@"{_args.Target}\Movies";
+
+          break;
         }
 
-        if (!isFileValid) {
+        if (!Constants.FileExtensions.AudioExtensions.Contains(extension)) {
           continue;
         }
 
-        var files = Directory.EnumerateFiles(directory, $"{group.Name}.*");
-        var newFolders = directory.Replace(_args.Source, string.Empty);
-        targetDirectory = $"{targetDirectory}{newFolders}";
-
-        CopyFiles(targetDirectory, files);
+        containsValidFile = true;
+        targetDirectory = $@"{_args.Target}\Music";
       }
+
+      if (!containsValidFile) {
+        using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MMddyyyy}.log")) {
+          sw.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [IGNORE]: Directory had no valid media files");
+          sw.WriteLine($"  [Directory]: {directory}");
+        }
+
+        return;
+      }
+
+      var newFolders = directory.Replace(_args.Source, string.Empty);
+      targetDirectory = $"{targetDirectory}{newFolders}";
+
+      CopyFiles(targetDirectory, files);
     }
 
     private void ProcessDirectories(string directory) {
@@ -155,7 +157,7 @@ namespace CopyApp.Copy {
 
       using (var sw = File.AppendText($@"{_args.Log}\{DateTime.Now:MMddyyyy}.log")) {
         Directory.Delete(directory);
-        sw.WriteLine($"{DateTime.Now:u} [DELETE]: Empty folder deleted successfully");
+        sw.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [DELETE]: Empty folder deleted successfully");
         sw.WriteLine($"  [Folder]: {directory}");
       }
     }
@@ -172,7 +174,7 @@ namespace CopyApp.Copy {
 
           if (!File.Exists(targetFile)) {
             File.Copy(file, targetFile);
-            sw.WriteLine($"{DateTime.Now:u} [COPY]: File copied successfully");
+            sw.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [COPY]: File copied successfully");
             sw.WriteLine($"  [From]: {file}");
             sw.WriteLine($"  [To]: {targetFile}");
           }
@@ -182,7 +184,7 @@ namespace CopyApp.Copy {
           }
 
           File.Delete(file);
-          sw.WriteLine($"{DateTime.Now:u} [DELETE]: File deleted successfully");
+          sw.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss tt} [DELETE]: File deleted successfully");
           sw.WriteLine($"  [File]: {file}");
         }
       }
